@@ -1,17 +1,4 @@
 services:
-  # web_app:
-  #   build: 
-  #     context: ./web_app
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - ./web_app:/app
-  #   depends_on:
-  #     - calculator
-  #   environment:
-  #     - CALC_SERVICE_URL=http://calculator:5000
-
   calculator:
     build:
       context: ./calculator
@@ -20,3 +7,14 @@ services:
       - "5000:5000"
     volumes:
       - ./calculator:/app
+    
+  web_app:
+    build:
+      context: ./web_app
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./web_app:/app
+    depends_on:
+      - calculator
