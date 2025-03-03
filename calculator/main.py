@@ -1,6 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from pydantic import BaseModel
+from typing import List
 
 app = FastAPI()
 
@@ -24,6 +25,13 @@ class ConsumptionMethodRequest(BaseModel):
     remaining_stock: float
     buffer_percent: float
     lead: float = None  # Optional
+
+class CBRMethodRequest(BaseModel):
+    initial_investment: float
+    yearly_costs: List[float]
+    yearly_benefits: List[float]
+    discount_rate: float
+    duration: int
 
 def calculate_consumption_method(yearly_usage, remaining_stock, buffer_percent, lead=None):
     """
@@ -55,6 +63,24 @@ def calculate_consumption_method(yearly_usage, remaining_stock, buffer_percent, 
     print(f"Result: {result}")
     return result
 
+def calculate_CBR(initial_investment, yearly_costs, yearly_benefits, discount_rate, duration):
+    
+    yearly_cost_sum = sum(yearly_costs)
+    yearly_benefit_sum = sum(yearly_benefits)
+    
+    def calc_discounted_value(total, rate, duration):
+        pv_total = 0
+        for t in range(duration):
+            pv = total / (1.0 + rate)**(t+1)
+            pv_total += pv
+        return pv_total
+    
+    pv_cost = calc_discounted_value(yearly_cost_sum, discount_rate, duration)
+    pv_benefit = calc_discounted_value(yearly_benefit_sum, discount_rate, duration)
+
+    cbr = pv_benefit / (initial_investment + pv_cost)
+    return cbr
+
 @app.post("/consumption_method")
 def consumption_method(request: ConsumptionMethodRequest):
     result = calculate_consumption_method(
@@ -64,3 +90,14 @@ def consumption_method(request: ConsumptionMethodRequest):
         request.lead
     )
     return {"required_stock": result}
+
+@app.post("/cost_benefit_ratio")
+def CBR(request: CBRMethodRequest):
+    result = calculate_CBR(
+        request.initial_investment,
+        request.yearly_costs,
+        request.yearly_benefits,
+        request.discount_rate,
+        request.duration
+    )
+    return {"cbr": round(result, 3)}
