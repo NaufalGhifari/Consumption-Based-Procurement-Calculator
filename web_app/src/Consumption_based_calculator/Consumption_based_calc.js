@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function App() {
+export default function ConsumptionCalculator() {
     const [yearlyUsage, setYearlyUsage] = useState("");
     const [remainingStock, setRemainingStock] = useState("");
     const [bufferPercent, setBufferPercent] = useState("");
@@ -41,5 +41,3 @@ function App() {
         </div>
     );
 }
-
-export default App;
